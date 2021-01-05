@@ -233,6 +233,16 @@ const DOMOperations = {
     dispatch(document, 'cable-ready:after-clear-storage', operation)
   },
 
+  playSound: operation => {
+    const { src } = operation
+    dispatch(document, 'cable-ready:before-play-sound', operation)
+    document.audio.src = src
+    document.audio
+      .play()
+      .then(() => dispatch(document, 'cable-ready:after-play-sound', operation))
+      .catch(err => console.warn('CableReady Audio error: ', err))
+  },
+
   pushState: operation => {
     const { state, title, url } = operation
     dispatch(document, 'cable-ready:before-push-state', operation)
@@ -347,6 +357,25 @@ const performAsync = (
     }
   })
 }
+
+const unlockAudio = () => {
+  document.body.removeEventListener('click', unlockAudio)
+  document.body.removeEventListener('touchstart', unlockAudio)
+  document.audio
+    .play()
+    .then(() => {})
+    .catch(() => {})
+}
+
+setTimeout(() => {
+  if (!document.audio) {
+    document.audio = new Audio(
+      'data:audio/mpeg;base64,//OExAAAAAAAAAAAAEluZm8AAAAHAAAABAAAASAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P39/f39/f39/f39/f39/f39/f39/f39/f3+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/AAAAAAAAAAAAAAAAAAAAAAAAAAAAJAa/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//MUxAAAAANIAAAAAExBTUUzLjk2LjFV//MUxAsAAANIAAAAAFVVVVVVVVVVVVVV//MUxBYAAANIAAAAAFVVVVVVVVVVVVVV//MUxCEAAANIAAAAAFVVVVVVVVVVVVVV'
+    )
+    document.body.addEventListener('click', unlockAudio)
+    document.body.addEventListener('touchstart', unlockAudio)
+  }
+})
 
 export default {
   perform,

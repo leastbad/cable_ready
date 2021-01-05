@@ -25,6 +25,7 @@ module CableReady
         morph
         notification
         outer_html
+        play_sound
         push_state
         remove
         remove_attribute
