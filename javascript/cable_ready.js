@@ -307,13 +307,17 @@ const DOMOperations = {
     dispatch(document, 'cable-ready:before-play-sound', operation)
     const { src } = operation
     if (!operation.cancel) {
+      const player = () => {
+        document.audio.removeEventListener('canplay', player)
+        document.audio.play()
+      }
+      const ended = () => {
+        document.audio.removeEventListener('ended', player)
+        dispatch(document, 'cable-ready:after-play-sound', operation)
+      }
+      document.audio.addEventListener('canplay', player)
+      document.audio.addEventListener('ended', ended)
       document.audio.src = src
-      document.audio
-        .play()
-        .then(() =>
-          dispatch(document, 'cable-ready:after-play-sound', operation)
-        )
-        .catch(err => console.warn(err))
     } else dispatch(document, 'cable-ready:after-play-sound', operation)
   }
 }
@@ -371,22 +375,25 @@ const performAsync = (
   })
 }
 
-const unlockAudio = () => {
-  document.body.removeEventListener('click', unlockAudio)
-  document.body.removeEventListener('touchstart', unlockAudio)
-  document.audio
-    .play()
-    .then(() => {})
-    .catch(() => {})
-}
-
 setTimeout(() => {
   if (!document.audio) {
     document.audio = new Audio(
       'data:audio/mpeg;base64,//OExAAAAAAAAAAAAEluZm8AAAAHAAAABAAAASAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P39/f39/f39/f39/f39/f39/f39/f39/f3+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/AAAAAAAAAAAAAAAAAAAAAAAAAAAAJAa/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//MUxAAAAANIAAAAAExBTUUzLjk2LjFV//MUxAsAAANIAAAAAFVVVVVVVVVVVVVV//MUxBYAAANIAAAAAFVVVVVVVVVVVVVV//MUxCEAAANIAAAAAFVVVVVVVVVVVVVV'
     )
-    document.body.addEventListener('click', unlockAudio)
-    document.body.addEventListener('touchstart', unlockAudio)
+    const unlockAudio = () => {
+      document.body.removeEventListener('click', unlockAudio)
+      document.body.removeEventListener('touchstart', unlockAudio)
+      document.audio
+        .play()
+        .then(() => {})
+        .catch(() => {})
+    }
+    const documentAvailable = setInterval(() => {
+      if (!document.body) return
+      clearInterval(documentAvailable)
+      document.body.addEventListener('click', unlockAudio)
+      document.body.addEventListener('touchstart', unlockAudio)
+    })
   }
 })
 
