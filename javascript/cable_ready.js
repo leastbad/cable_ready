@@ -41,8 +41,10 @@ const DOMOperations = {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-inner-html', operation)
       const { html, focusSelector } = operation
-      if (!operation.cancel) element.innerHTML = html
-      assignFocus(focusSelector)
+      if (!operation.cancel) {
+        element.innerHTML = html
+        assignFocus(focusSelector)
+      }
       dispatch(element, 'cable-ready:after-inner-html', operation)
     })
   },
@@ -51,9 +53,10 @@ const DOMOperations = {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-insert-adjacent-html', operation)
       const { html, position, focusSelector } = operation
-      if (!operation.cancel)
+      if (!operation.cancel) {
         element.insertAdjacentHTML(position || 'beforeend', html)
-      assignFocus(focusSelector)
+        assignFocus(focusSelector)
+      }
       dispatch(element, 'cable-ready:after-insert-adjacent-html', operation)
     })
   },
@@ -62,34 +65,37 @@ const DOMOperations = {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-insert-adjacent-text', operation)
       const { text, position, focusSelector } = operation
-      if (!operation.cancel)
+      if (!operation.cancel) {
         element.insertAdjacentText(position || 'beforeend', text)
-      assignFocus(focusSelector)
+        assignFocus(focusSelector)
+      }
       dispatch(element, 'cable-ready:after-insert-adjacent-text', operation)
     })
   },
 
   morph: operation => {
     processElements(operation, element => {
-      const { html, childrenOnly, focusSelector } = operation
+      const { html } = operation
       const template = document.createElement('template')
       template.innerHTML = String(html).trim()
-      dispatch(element, 'cable-ready:before-morph', {
-        ...operation,
-        content: template.content
-      })
+      operation.content = template.content
+      dispatch(element, 'cable-ready:before-morph', operation)
+      const { childrenOnly, focusSelector } = operation
       const parent = element.parentElement
       const ordinal = Array.from(parent.children).indexOf(element)
-      morphdom(element, childrenOnly ? template.content : template.innerHTML, {
-        childrenOnly: !!childrenOnly,
-        onBeforeElUpdated: shouldMorph(operation),
-        onElUpdated: didMorph(operation)
-      })
-      assignFocus(focusSelector)
-      dispatch(parent.children[ordinal], 'cable-ready:after-morph', {
-        ...operation,
-        content: template.content
-      })
+      if (!operation.cancel) {
+        morphdom(
+          element,
+          childrenOnly ? template.content : template.innerHTML,
+          {
+            childrenOnly: !!childrenOnly,
+            onBeforeElUpdated: shouldMorph(operation),
+            onElUpdated: didMorph(operation)
+          }
+        )
+        assignFocus(focusSelector)
+      }
+      dispatch(parent.children[ordinal], 'cable-ready:after-morph', operation)
     })
   },
 
@@ -99,8 +105,10 @@ const DOMOperations = {
       const { html, focusSelector } = operation
       const parent = element.parentElement
       const ordinal = Array.from(parent.children).indexOf(element)
-      if (!operation.cancel) element.outerHTML = html
-      assignFocus(focusSelector)
+      if (!operation.cancel) {
+        element.outerHTML = html
+        assignFocus(focusSelector)
+      }
       dispatch(
         parent.children[ordinal],
         'cable-ready:after-outer-html',
@@ -113,9 +121,11 @@ const DOMOperations = {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-remove', operation)
       const { focusSelector } = operation
-      if (!operation.cancel) element.remove()
-      assignFocus(focusSelector)
-      dispatch(element, 'cable-ready:after-remove', operation)
+      if (!operation.cancel) {
+        element.remove()
+        assignFocus(focusSelector)
+      }
+      dispatch(document, 'cable-ready:after-remove', operation)
     })
   },
 
@@ -123,13 +133,15 @@ const DOMOperations = {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-text-content', operation)
       const { text, focusSelector } = operation
-      if (!operation.cancel) element.textContent = text
-      assignFocus(focusSelector)
+      if (!operation.cancel) {
+        element.textContent = text
+        assignFocus(focusSelector)
+      }
       dispatch(element, 'cable-ready:after-text-content', operation)
     })
   },
 
-  // Element Mutations
+  // Element Property Mutations
 
   addCssClass: operation => {
     processElements(operation, element => {
@@ -226,58 +238,48 @@ const DOMOperations = {
   // Browser Manipulations
 
   clearStorage: operation => {
+    dispatch(document, 'cable-ready:before-clear-storage', operation)
     const { type } = operation
     const storage = type === 'session' ? sessionStorage : localStorage
-    dispatch(document, 'cable-ready:before-clear-storage', operation)
-    storage.clear()
+    if (!operation.cancel) storage.clear()
     dispatch(document, 'cable-ready:after-clear-storage', operation)
   },
 
-  playSound: operation => {
-    const { src } = operation
-    dispatch(document, 'cable-ready:before-play-sound', operation)
-    document.audio.src = src
-    document.audio
-      .play()
-      .then(() => dispatch(document, 'cable-ready:after-play-sound', operation))
-      .catch(err => console.warn('CableReady Audio error: ', err))
-  },
-
   pushState: operation => {
-    const { state, title, url } = operation
     dispatch(document, 'cable-ready:before-push-state', operation)
-    history.pushState(state || {}, title || '', url)
+    const { state, title, url } = operation
+    if (!operation.cancel) history.pushState(state || {}, title || '', url)
     dispatch(document, 'cable-ready:after-push-state', operation)
   },
 
   removeStorageItem: operation => {
+    dispatch(document, 'cable-ready:before-remove-storage-item', operation)
     const { key, type } = operation
     const storage = type === 'session' ? sessionStorage : localStorage
-    dispatch(document, 'cable-ready:before-remove-storage-item', operation)
-    storage.removeItem(key)
+    if (!operation.cancel) storage.removeItem(key)
     dispatch(document, 'cable-ready:after-remove-storage-item', operation)
   },
 
   setCookie: operation => {
-    const { cookie } = operation
     dispatch(document, 'cable-ready:before-set-cookie', operation)
-    document.cookie = cookie
+    const { cookie } = operation
+    if (!operation.cancel) document.cookie = cookie
     dispatch(document, 'cable-ready:after-set-cookie', operation)
   },
 
   setFocus: operation => {
     processElements(operation, element => {
       dispatch(element, 'cable-ready:before-set-focus', operation)
-      assignFocus(element)
+      if (!operation.cancel) assignFocus(element)
       dispatch(element, 'cable-ready:after-set-focus', operation)
     })
   },
 
   setStorageItem: operation => {
+    dispatch(document, 'cable-ready:before-set-storage-item', operation)
     const { key, value, type } = operation
     const storage = type === 'session' ? sessionStorage : localStorage
-    dispatch(document, 'cable-ready:before-set-storage-item', operation)
-    storage.setItem(key, value)
+    if (!operation.cancel) storage.setItem(key, value)
     dispatch(document, 'cable-ready:after-set-storage-item', operation)
   },
 
@@ -291,17 +293,28 @@ const DOMOperations = {
   },
 
   notification: operation => {
-    const { title, options } = operation
     dispatch(document, 'cable-ready:before-notification', operation)
-    let permission
-    Notification.requestPermission().then(result => {
-      permission = result
-      if (result === 'granted') new Notification(title || '', options)
-      dispatch(document, 'cable-ready:after-notification', {
-        ...operation,
-        permission
+    const { title, options } = operation
+    if (!operation.cancel)
+      Notification.requestPermission().then(result => {
+        operation.permission = result
+        if (result === 'granted') new Notification(title || '', options)
       })
-    })
+    dispatch(document, 'cable-ready:after-notification', operation)
+  },
+
+  playSound: operation => {
+    dispatch(document, 'cable-ready:before-play-sound', operation)
+    const { src } = operation
+    if (!operation.cancel) {
+      document.audio.src = src
+      document.audio
+        .play()
+        .then(() =>
+          dispatch(document, 'cable-ready:after-play-sound', operation)
+        )
+        .catch(err => console.warn(err))
+    } else dispatch(document, 'cable-ready:after-play-sound', operation)
   }
 }
 
