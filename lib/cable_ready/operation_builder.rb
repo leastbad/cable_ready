@@ -17,8 +17,8 @@ module CableReady
       }
     end
 
-    def to_json(_ = nil)
-      @enqueued_operations.to_json
+    def to_json(*args)
+      @enqueued_operations.to_json(*args)
     end
 
     def apply(operations = "{}")
