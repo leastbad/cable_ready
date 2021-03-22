@@ -12,9 +12,7 @@ module CableReady
     initializer "renderer" do
       ActiveSupport.on_load(:action_controller) do
         ActionController::Renderers.add :operations do |operations, options|
-          self.content_type = Mime[:json]
-          # operations.respond_to?(:ride) ? operations.ride(options) : operations
-          operations
+          render json: operations.ride
         end
       end
     end
