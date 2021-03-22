@@ -1,6 +1,5 @@
 module CableReady
   class OperationBuilder
-
     attr_reader :identifier
 
     def self.finalizer_for(identifier)

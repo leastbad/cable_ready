@@ -5,7 +5,7 @@ require_relative "../../../lib/cable_ready"
 
 class CableReady::OperationBuilderTest < ActiveSupport::TestCase
   setup do
-    @operation_builder = CableReady::OperationBuilder.new('test')
+    @operation_builder = CableReady::OperationBuilder.new("test")
   end
 
   test "should create enqueued operations" do

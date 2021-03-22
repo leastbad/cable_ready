@@ -7,7 +7,7 @@ module CableReady
     extend Thread::Local
 
     def initialize
-      super 'CableCar'
+      super "CableCar"
     end
 
     def ride(clear: true)
