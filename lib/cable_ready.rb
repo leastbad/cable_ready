@@ -3,10 +3,9 @@
 require "rails/engine"
 require "active_support/all"
 require "cable_ready/version"
-require "cable_ready/operational"
+require "cable_ready/operation_builder"
 require "cable_ready/config"
 require "cable_ready/broadcaster"
-require "cable_ready/operation_builder"
 
 module CableReady
   class Engine < Rails::Engine

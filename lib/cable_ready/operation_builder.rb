@@ -1,12 +1,22 @@
 module CableReady
   class OperationBuilder
-    def initialize
+
+    attr_reader :identifier
+
+    def self.finalizer_for(identifier)
+      proc {
+        channel = CableReady.config.observers.find { |o| o.try(:identifier) == identifier }
+        CableReady.config.delete_observer channel if channel
+      }
+    end
+
+    def initialize(identifier)
+      @identifier = identifier
+
       reset!
       CableReady.config.operation_names.each { |name| add_operation_method name }
-
-      config_observer = self
-      CableReady.config.add_observer config_observer, :add_operation_method
-      ObjectSpace.define_finalizer self, -> { CableReady.config.delete_observer config_observer }
+      CableReady.config.add_observer self, :add_operation_method
+      ObjectSpace.define_finalizer self, self.class.finalizer_for(identifier)
     end
 
     def add_operation_method(name)
@@ -14,6 +24,7 @@ module CableReady
 
       singleton_class.public_send :define_method, name, ->(options = {}) {
         @enqueued_operations[name.to_s] << options.stringify_keys
+        self
       }
     end
 

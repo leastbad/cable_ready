@@ -3,13 +3,16 @@
 require "thread/local"
 
 module CableReady
-  class CableCar
-    include Operational
+  class CableCar < OperationBuilder
     extend Thread::Local
 
+    def initialize
+      super 'CableCar'
+    end
+
     def ride(clear: true)
-      payload = @operation_builder.operations_payload
-      @operation_builder.reset! if clear
+      payload = operations_payload
+      reset! if clear
       payload
     end
   end

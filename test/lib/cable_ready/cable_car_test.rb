@@ -17,12 +17,12 @@ class CableReady::CableCarTest < ActiveSupport::TestCase
   test "ride should clear operations" do
     CableReady::CableCar.instance.reset!
     CableReady::CableCar.instance.inner_html(selector: "#users", html: "<span>winning</span>").ride
-    assert_equal({}, CableReady::CableCar.instance.instance_variable_get(:@operation_builder).instance_variable_get(:@enqueued_operations))
+    assert_equal({}, CableReady::CableCar.instance.instance_variable_get(:@enqueued_operations))
   end
 
   test "ride should maintain operations if clear is false" do
     CableReady::CableCar.instance.reset!
     CableReady::CableCar.instance.inner_html(selector: "#users", html: "<span>winning</span>").ride(clear: false)
-    assert_equal({"inner_html" => [{"selector" => "#users", "html" => "<span>winning</span>"}]}, CableReady::CableCar.instance.instance_variable_get(:@operation_builder).instance_variable_get(:@enqueued_operations))
+    assert_equal({"inner_html" => [{"selector" => "#users", "html" => "<span>winning</span>"}]}, CableReady::CableCar.instance.instance_variable_get(:@enqueued_operations))
   end
 end
